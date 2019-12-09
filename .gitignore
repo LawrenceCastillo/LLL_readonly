@@ -1,5 +1,11 @@
-# Object file
-*.o
+## PHP
 
-# Ada Library Information
-*.ali
+# db authentication
+/config.php
+
+# user login
+/authenticate.php
+/header.php
+
+## Mac system files
+/.DS_Store
