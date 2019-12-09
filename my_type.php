@@ -3,41 +3,69 @@
 require_once "config.php";
 
 foreach ($_POST as $key => $value){
-
+  // capture choice_ids
   if ($value == "Tend to Agree" ){$choice_id = $key*2;}
   else if ($value == "Tend to Disagree" ){$choice_id = $key*2+1;}
-    
+  // query for choice values (meaning)
   if ($stmt = $con->prepare('
-      INSERT INTO chooses (account_id, choice_id) 
-      VALUES (?, ?)')){
-    $stmt->bind_param('ii', $id, $choice_id);
+      SELECT type_id FROM choices WHERE choice_id = ?')){
+    $stmt->bind_param('i', $choice_id);
     $stmt->execute();
+    $stmt->bind_result('i', $val);
+    $stmt->fetch();
   } else { die ('Something went wrong!'); }
   $stmt->close();
+  // accumulate type score
+  $score += $val;
 }
 
-$stmt = $con->prepare('
-    SELECT x.type_id type_id
-    FROM choices x
-    JOIN (
-      SELECT choice_id 
-      FROM chooses 
-      WHERE account_id = ? 
-      ORDER BY choose_id DESC 
-      LIMIT 8) o
-    ON x.choice_id = o.choice_id');
-$stmt->bind_param('i', $id);
-$stmt->execute();
-$result = $stmt->get_result();
-while($row_data = $result->fetch_assoc()) {
-  $score += $row_data['type_id'];
-}
-
-/* Find Type from score */
+// Find type from score
 if ($score < 24)      {$type = 2;}
 else if ($score < 28) {$type = 3;}
 else if ($score < 32) {$type = 4;}
 else                  {$type = 5;} 
+
+// Capture type name
+$stmt = $con->prepare('
+    SELECT type
+    FROM types 
+    WHERE type_id = ?');
+$stmt->bind_param('i', $type);
+$stmt->execute();
+$stmt->bind_result('s', $type_name);
+$stmt->fetch();
+
+// Return compatible type 1
+$stmt = $con->prepare('
+  SELECT type 
+  FROM types 
+  WHERE type_id= (
+    SELECT max(type_id2) 
+    FROM pairings
+    WHERE type_id1 = ?)');
+$stmt->bind_param('i', $type);
+$stmt->execute();
+$stmt->bind_result($pair1);
+$stmt->fetch();
+$stmt->close();
+
+// Return compatible type 2
+$stmt = $con->prepare('
+  SELECT type 
+  FROM types 
+  WHERE type_id= (
+    SELECT min(type_id2) 
+    FROM pairings
+    WHERE type_id1 = ?)');
+$stmt->bind_param('i', $type);
+$stmt->execute();
+$stmt->bind_result($pair2);
+$stmt->fetch();
+$stmt->close();
+
+// Grab all types
+$query = 'SELECT type, description FROM types';
+$result = mysqli_fetch_all($con->query($query), MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
