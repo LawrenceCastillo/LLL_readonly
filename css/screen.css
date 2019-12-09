@@ -23,7 +23,7 @@ a.button:hover { background-color: rgba(0,0,0,.3); }
 
 /* Header */
 
-header { height: 136px; background: #faffff url(../images/_MG_7838_.jpg) no-repeat center bottom; position: relative; }
+header { height: 136px; background: #faffff; position: relative; }
 
 header a.logo { 
     z-index: 1;
