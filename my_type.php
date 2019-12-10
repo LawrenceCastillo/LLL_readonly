@@ -37,7 +37,6 @@ foreach ($_POST as $key => $value){
     $score += $val;
   }
 }
-echo $score;
 
 // Find type from score
 if ($score < 24)      {$type = 2;}
