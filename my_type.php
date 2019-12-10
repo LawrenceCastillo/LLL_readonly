@@ -2,22 +2,42 @@
 // Include config file
 require_once "config.php";
 
+$choice_id = 0;
+$score     = 0;
+$type      = 0;
+
 foreach ($_POST as $key => $value){
   // capture choice_ids
-  if ($value == "Tend to Agree" ){$choice_id = $key*2;}
-  else if ($value == "Tend to Disagree" ){$choice_id = $key*2+1;}
-  // query for choice values (meaning)
-  if ($stmt = $con->prepare('
-      SELECT type_id FROM choices WHERE choice_id = ?')){
-    $stmt->bind_param('i', $choice_id);
-    $stmt->execute();
-    $stmt->bind_result('i', $val);
-    $stmt->fetch();
-  } else { die ('Something went wrong!'); }
-  $stmt->close();
-  // accumulate type score
-  $score += $val;
+  if ($value == "Tend to Agree" ){
+    $choice_id = $key*2;
+    // query for choice values (meaning)
+    if ($stmt = $con->prepare('
+        SELECT type_id FROM choices WHERE choice_id = ?')){
+      $stmt->bind_param('i', $choice_id);
+      $stmt->execute();
+      $stmt->bind_result($val);
+      $stmt->fetch();
+    } else { die ('Something went wrong!'); }
+    $stmt->close();
+    // accumulate type score
+    $score += $val;
+  }
+  else if ($value == "Tend to Disagree" ){
+    $choice_id = $key*2+1;
+    // query for choice values (meaning)
+    if ($stmt = $con->prepare('
+        SELECT type_id FROM choices WHERE choice_id = ?')){
+      $stmt->bind_param('i', $choice_id);
+      $stmt->execute();
+      $stmt->bind_result($val);
+      $stmt->fetch();
+    } else { die ('Something went wrong!'); }
+    $stmt->close();
+    // accumulate type score
+    $score += $val;
+  }
 }
+echo $score;
 
 // Find type from score
 if ($score < 24)      {$type = 2;}
@@ -32,14 +52,15 @@ $stmt = $con->prepare('
     WHERE type_id = ?');
 $stmt->bind_param('i', $type);
 $stmt->execute();
-$stmt->bind_result('s', $type_name);
+$stmt->bind_result($type_name);
 $stmt->fetch();
+$stmt->close();
 
 // Return compatible type 1
 $stmt = $con->prepare('
   SELECT type 
   FROM types 
-  WHERE type_id= (
+  WHERE type_id = (
     SELECT max(type_id2) 
     FROM pairings
     WHERE type_id1 = ?)');
@@ -53,7 +74,7 @@ $stmt->close();
 $stmt = $con->prepare('
   SELECT type 
   FROM types 
-  WHERE type_id= (
+  WHERE type_id = (
     SELECT min(type_id2) 
     FROM pairings
     WHERE type_id1 = ?)');
@@ -86,7 +107,8 @@ $result = mysqli_fetch_all($con->query($query), MYSQLI_ASSOC);
         <div class="hero">
         </div>
       </header>
-
+      <h2 id="qpage">My type: <?php echo $type_name;?></h2>
+      <h2 id="qpage">My compatible match types: <?php echo "$pair1 and $pair2";?></h2>
       <h2 id="qpage">Personality Types based on "The Four Tendencies" by Gretchen Rubin</h2>
       <div>
 	<?php for ( $i=0; $i < 4; $i++ ){ ?>
@@ -98,11 +120,7 @@ $result = mysqli_fetch_all($con->query($query), MYSQLI_ASSOC);
 
       <nav>
         <ul>
-          <li><a class="navigation" href="logout.php">LOGOUT</a></li>
           <li><a class="navigation" href="quiz.php">TAKE THE QUIZ!</a></li>
-          <li><a class="navigation" href="profile.php">PROFILE</a></li>
-	  <li><a class="navigation" href="index.html">LOGIN</a></li>
-	  <li><a class="navigation" href="register.html">REGISTER</a></li>
         </ul>
       </nav>
 

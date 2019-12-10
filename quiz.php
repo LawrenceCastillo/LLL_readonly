@@ -29,7 +29,7 @@ $result = mysqli_fetch_all($con->query($query), MYSQLI_ASSOC);
       </header>
       <h2 id="qpage">Find Your match with this personality quiz!</h2>
       <div>
-	      <form action="entry.php" method="post" autocomplete="off"> 
+	      <form action="my_type.php" method="post" autocomplete="off"> 
 	        <?php for ( $i=0; $i < 8; $i++ ){ ?>
             <blockquote>
               <?php echo $result[$i]['question']; ?>
