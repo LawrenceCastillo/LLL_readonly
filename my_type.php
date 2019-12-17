@@ -2,6 +2,11 @@
 // Include config file
 require_once "config.php";
 
+$stmt = $con->prepare('INSERT INTO iArt (fname, lname, email) VALUES (?, ?, ?)');
+$stmt->bind_param('sss', $_POST['fname'], $_POST['lname'], $_POST['email']);
+$stmt->execute();
+$stmt->close();
+
 $choice_id = 0;
 $score     = 0;
 $type      = 0;
